@@ -1,0 +1,77 @@
+﻿
+#if SHADER_API_MOBILE && SHADER_API_METAL
+#define NUM_THREADS 512
+#elif SHADER_API_MOBILE && SHADER_API_GLES3
+#define NUM_THREADS 128
+#elif SHADER_API_GLCORE
+#define NUM_THREADS 512
+#else
+#define NUM_THREADS 1024
+#endif
+
+#pragma kernel CSInstancedRenderingVisibilityKernelLOD0
+#pragma kernel CSInstancedRenderingVisibilityKernelLOD1
+#pragma kernel CSInstancedRenderingVisibilityKernelLOD2
+#pragma kernel CSInstancedRenderingVisibilityKernelLOD3
+
+RWStructuredBuffer<uint4> gpuiInstanceLODData; // lodNo - shadowLodNo - cfLodNo - cfLevel 
+AppendStructuredBuffer<uint> gpuiTransformationMatrix_LOD0;
+AppendStructuredBuffer<uint> gpuiTransformationMatrix_LOD1;
+AppendStructuredBuffer<uint> gpuiTransformationMatrix_LOD2;
+AppendStructuredBuffer<uint> gpuiTransformationMatrix_LOD3;
+
+uniform uint bufferSize;
+uniform uint lodShift;
+uniform uint lodAppendIndex;
+
+[numthreads(NUM_THREADS, 1, 1)]
+void CSInstancedRenderingVisibilityKernelLOD0(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= bufferSize)
+        return;
+    
+    if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift)
+        gpuiTransformationMatrix_LOD0.Append(id.x);
+}
+
+[numthreads(NUM_THREADS, 1, 1)]
+void CSInstancedRenderingVisibilityKernelLOD1(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= bufferSize)
+        return;
+    
+    if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift)
+        gpuiTransformationMatrix_LOD0.Append(id.x);
+    else if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift + 1)
+        gpuiTransformationMatrix_LOD1.Append(id.x);
+}
+
+[numthreads(NUM_THREADS, 1, 1)]
+void CSInstancedRenderingVisibilityKernelLOD2(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= bufferSize)
+        return;
+    
+    if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift)
+        gpuiTransformationMatrix_LOD0.Append(id.x);
+    else if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift + 1)
+        gpuiTransformationMatrix_LOD1.Append(id.x);
+    else if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift + 2)
+        gpuiTransformationMatrix_LOD2.Append(id.x);
+}
+
+[numthreads(NUM_THREADS, 1, 1)]
+void CSInstancedRenderingVisibilityKernelLOD3(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= bufferSize)
+        return;
+
+    if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift)
+        gpuiTransformationMatrix_LOD0.Append(id.x);
+    else if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift + 1)
+        gpuiTransformationMatrix_LOD1.Append(id.x);
+    else if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift + 2)
+        gpuiTransformationMatrix_LOD2.Append(id.x);
+    else if (gpuiInstanceLODData[id.x][lodAppendIndex] == lodShift + 3)
+        gpuiTransformationMatrix_LOD3.Append(id.x);
+}
